@@ -1,12 +1,20 @@
 import dotenv from "dotenv";
 import pool from "./config/db.js";
 import express from "express";
+import employeeReads from "./routes/employee-reads.js";
+import analytics from "./routes/analytics.js";
+import adminWrites from "./routes/admin-writes.js";
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+app.use(employeeReads);
+app.use(analytics);
+app.use(adminWrites);
+
 app.get("/", (req, res) => {
     res.send("Employee Management API is running");
 });
