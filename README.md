@@ -134,3 +134,18 @@ DB_NAME = your_database
 
 Start the server
 npm run dev
+
+# Feature Improvement
+
+1. Refactor API logic into a Controller-Service-Model Architecture
+2. Move the database operations into the models/ layer
+3. Move request/response handling into into controllers/
+4. Add reusable middleware for validation, authentication, authorization and centralized error handling
+5. Add JWT Based authentication
+6. Add role-based authorization 
+7. Add API Documentation with Swagger/Open API
+8. Add Automated testing
+9. Add Docker support
+10. Build a React frontend for the Employee Management system
+11. Connect the React frontend to the REST API
+12. Deploy the API and PostgreSQL Database to the cloud
