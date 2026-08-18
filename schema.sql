@@ -44,3 +44,25 @@ CREATE TABLE work_logs (
     metadata JSONB,                 
     status VARCHAR(20) DEFAULT 'pending' 
 );
+
+--users
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE users ADD COLUMN role VARCHAR(50) NOT NULL DEFAULT 'employees';
+
+UPDATE users SET role = 'admin' WHERE email = 'admin@company.com';
+SELECT * FROM users;
+
+CREATE TABLE refresh_tokens(
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    token_hash TEXT UNIQUE NOT NULL,
+    expired_at TIMESTAMP NOT NULL,
+    revoked_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
