@@ -1,5 +1,7 @@
 import express from "express";
 import pool from "../config/db.js";
+import { validate } from "../middlewares/validate.js";
+import { minEmployeesQuery, minHoursQuery, minProjectsQuery, minLogsQuery } from "../schemas/analytics.js";
 
 const router = express.Router();
 
@@ -81,17 +83,10 @@ router.get("/stats/departments/salaries", async(req, res) => {
     }
 });
 
-router.get("/stats/departments/large", async(req, res) => {
+router.get("/stats/departments/large", validate({ query: minEmployeesQuery }), async(req, res) => {
     try {
 
         const count = Number(req.query.minEmployees);
-
-        if(!Number.isInteger(count) || count<1){
-            return res.status(400).json({
-                success : false,
-                message : "Invalid minimum employee count"
-            });
-        }
 
         const result = await pool.query(`SELECT departments.department_name, COUNT(employees.employee_id) AS employee_count FROM departments LEFT JOIN employees ON departments.department_id = employees.department_id GROUP BY departments.department_name HAVING COUNT(employees.employee_id) >= $1 ORDER BY employee_count DESC`, [count]);
 
@@ -170,17 +165,10 @@ router.get("/stats/projects/allocated_hours", async(req, res) => {
     }
 });
 
-router.get('/stats/projects/overloaded', async(req, res) => {
+router.get('/stats/projects/overloaded', validate({ query: minHoursQuery }), async(req, res) => {
     try {
 
         const overloaded = Number(req.query.minHours);
-
-        if(!Number.isInteger(overloaded) || overloaded<1){
-            return res.status(400).json({
-                success : false,
-                message : "Invalid minimum hours allocated to the project"
-            });
-        }
 
         const result = await pool.query(`SELECT projects.project_name, COALESCE(SUM(project_assignment.hours_allocated), 0) AS total_allocated_hours FROM projects LEFT JOIN project_assignment ON  projects.project_id = project_assignment.project_id GROUP BY projects.project_name HAVING SUM(project_assignment.hours_allocated) >= $1`, [overloaded]);
 
@@ -222,17 +210,10 @@ router.get('/stats/employees/project_workload', async(req, res) => {
     }
 });
 
-router.get("/stats/employees/multi-projects", async(req, res) => {
+router.get("/stats/employees/multi-projects", validate({ query: minProjectsQuery }), async(req, res) => {
     try {
 
         const minProj = Number(req.query.minProjects);
-
-        if(!Number.isInteger(minProj) || minProj < 1) {
-            return res.status(400).json({
-                success : false,
-                message : "Invalid minimum project value"
-            });
-        }
 
         const result = await pool.query(`SELECT CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name, COUNT(project_assignment.project_id) AS project_count FROM employees JOIN project_assignment ON employees.employee_id = project_assignment.employee_id GROUP BY employees.employee_id, employees.first_name, employees.last_name HAVING COUNT(project_assignment.project_id)>=$1`, [minProj]);
 
@@ -290,17 +271,10 @@ router.get("/stats/employees/work_logs", async(req, res) => {
     }
 });
 
-router.get("/stats/employees/active", async(req, res) => {
+router.get("/stats/employees/active", validate({ query: minLogsQuery }), async(req, res) => {
     try {
 
         const minCount = Number(req.query.minLogs);
-
-        if(!Number.isInteger(minCount) || minCount<= 1){
-            return res.status(400).json({
-                success:false,
-                message:"Invalid minimum logs count"
-            });
-        }
 
         const result = await pool.query(`SELECT CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name, COUNT(work_logs.employee_id) AS work_log_count FROM employees JOIN work_logs ON employees.employee_id = work_logs.employee_id GROUP BY employees.employee_id, employees.first_name, employees.last_name HAVING COUNT(work_logs.employee_id) >= $1`, [minCount]);
 
