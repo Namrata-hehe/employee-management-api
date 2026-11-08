@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import { authenticate } from "../middlewares/authMiddleware.js";
 import crypto from "crypto";
 import { ref } from "process";
-import strict from "assert/strict";
 import { validate } from "../middlewares/validate.js";
 import { registerBody, loginBody } from "../schemas/auth.js";
 
