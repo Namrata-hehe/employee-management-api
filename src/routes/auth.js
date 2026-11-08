@@ -6,24 +6,19 @@ import { authenticate } from "../middlewares/authMiddleware.js";
 import crypto from "crypto";
 import { ref } from "process";
 import strict from "assert/strict";
+import { validate } from "../middlewares/validate.js";
+import { registerBody, loginBody } from "../schemas/auth.js";
 
 
 
 const router = express.Router();
 
-router.post("/register", async(req, res) => {
+router.post("/register", validate({ body: registerBody }), async(req, res) => {
 
     
 
     try {
         const{email, password} = req.body;
-
-        if(!email || !password){
-            return res.status(400).json({
-                success : false,
-                message : "Email and password are required"
-            });
-        }
 
         const existingUser = await pool.query(`SELECT user_id FROM users WHERE email=$1`, [email]);
 
@@ -53,17 +48,10 @@ router.post("/register", async(req, res) => {
     }
 });
 
-router.post('/login', async(req, res) => {
+router.post('/login', validate({ body: loginBody }), async(req, res) => {
     try {
 
         const {email, password} = req.body;
-
-        if(!email || !password){
-            return res.status(400).json({
-                success : false,
-                message : "Email and password are required"
-            });
-        }
 
         const result = await pool.query(`SELECT user_id, email, password_hash, role FROM users WHERE email = $1`, [email]);
 
@@ -155,7 +143,6 @@ router.get("/me", authenticate, async(req, res) => {
 
 router.post("/refresh", async(req, res) => {
 
-    console.log(req.body);
 
     try {
 

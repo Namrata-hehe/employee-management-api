@@ -1,19 +1,15 @@
 import express from "express";
 import pool from "../config/db.js";
+import { validate } from "../middlewares/validate.js";
+import { createEmployeeBody, updateDepartmentBody, createAssignmentBody } from "../schemas/admin.js";
+import { idParams } from "../schemas/common.js";
 
 const router = express.Router();
 
-router.post("/employees", async(req, res) => {
+router.post("/employees", validate({ body: createEmployeeBody }), async(req, res) => {
     try {
 
         const {first_name, last_name, email, salary, department_id} = req.body;
-
-        if(!first_name || !last_name || !email || salary == null || department_id == null){
-            return res.status(400).json({
-                success : false,
-                message : "All feilds are required"
-            });
-        }
 
         const result = await pool.query(`INSERT INTO employees(first_name, last_name, email, salary, department_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`, [first_name, last_name, email, salary, department_id]);
 
@@ -64,17 +60,10 @@ router.post("/employees", async(req, res) => {
     }
 });
 
-router.delete("/departments/:id", async(req, res) => {
+router.delete("/departments/:id", validate({ params: idParams }), async(req, res) => {
     try {
 
         const id = Number(req.params.id);
-
-        if(!Number.isInteger(id) || id < 1){
-            return res.status(400).json({
-                success : false,
-                message : "Invalid department id"
-            });
-        }
 
         const result = await pool.query(`DELETE FROM departments WHERE department_id = $1 RETURNING *`, [id]);
 
@@ -108,17 +97,10 @@ router.delete("/departments/:id", async(req, res) => {
 });  
 
 
-router.delete("/employees/:id", async(req, res) => {
+router.delete("/employees/:id", validate({ params: idParams }), async(req, res) => {
     try {
 
         const id = Number(req.params.id);
-
-        if(!Number.isInteger(id) || id < 1){
-            return res.status(400).json({
-                success : false,
-                message : "Invalid employee id"
-            });
-        }
 
         const result = await pool.query(`DELETE FROM employees WHERE id = $1 RETURNING *`, [id]);
 
@@ -151,26 +133,12 @@ router.delete("/employees/:id", async(req, res) => {
     }
 }); 
 
-router.put("/departments/:id", async(req, res) => {
+router.put("/departments/:id", validate({ params: idParams, body: updateDepartmentBody }), async(req, res) => {
     try {
 
         const id = Number(req.params.id);
 
-        if(!Number.isInteger(id) || id < 1) {
-            return res.status(400).json({
-                success : false, 
-                message : "Invalid department id"
-            });
-        }
-
         const {department_name} = req.body;
-
-        if(!department_name){
-            return res.status(400).json({
-                success : false,
-                message : "Department name dosen't exist"
-            });
-        }
 
         const result = await pool.query(`UPDATE departments SET department_name = $1 WHERE department_id = $2 RETURNING *`, [department_name, id]);
 
@@ -196,17 +164,10 @@ router.put("/departments/:id", async(req, res) => {
     }
 }); 
 
-router.post("/project_assignment", async(req, res) => {
+router.post("/project_assignment", validate({ body: createAssignmentBody }), async(req, res) => {
     try {
 
         const { project_id, employee_id, role, hours_allocated } = req.body;
-
-        if(project_id == null || employee_id == null || !role || hours_allocated == null) {
-            return res.status(400).json({
-                success : false, 
-                message : "All feilds are required"
-            });
-        }
 
         const result = await pool.query(`INSERT INTO project_assignment (project_id, employee_id, role, hours_allocated) VALUES ($1, $2, $3, $4) RETURNING *`, [project_id, employee_id, role, hours_allocated]);
 

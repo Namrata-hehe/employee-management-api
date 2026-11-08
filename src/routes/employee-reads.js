@@ -1,5 +1,7 @@
 import express from "express";
 import pool from "../config/db.js";
+import { validate } from "../middlewares/validate.js";
+import { idParams } from "../schemas/common.js";
 
 const router = express.Router();
 
@@ -19,15 +21,9 @@ router.get("/employees", async(req, res) => {
     }
 });
 
-router.get("/departments/:id/employees", async(req, res) => {
+router.get("/departments/:id/employees", validate({ params: idParams }), async(req, res) => {
     try {
         const id = Number(req.params.id);
-
-        if(!Number.isInteger(id) || id < 1){
-            return res.status(400).json({
-                message : "Invalid Id"
-            });
-        }
 
         const result = await pool.query(`SELECT * FROM employees WHERE department_id = $1`, [id]);
 
@@ -53,16 +49,10 @@ router.get("/departments/:id/employees", async(req, res) => {
     }
 });
 
-router.get("/employees/:id/projects", async(req, res) => {
+router.get("/employees/:id/projects", validate({ params: idParams }), async(req, res) => {
     try {
         const id = Number(req.params.id);
 
-        if(!Number.isInteger(id) || id <1) {
-            return res.status(400).json({
-                success : false,
-                message : "Invalid employee ID"
-            });
-        }
         const result = await pool.query(
   `SELECT projects.project_id, projects.project_name, projects.start_date, projects.end_date, project_assignment.role, project_assignment.hours_allocated 
    FROM project_assignment 
@@ -92,19 +82,10 @@ router.get("/employees/:id/projects", async(req, res) => {
     }
 });
 
-router.get("/projects/:id/employees", async(req, res) => {
+router.get("/projects/:id/employees", validate({ params: idParams }), async(req, res) => {
     try {
 
         const id = Number(req.params.id);
-
-        if(!Number.isInteger(id) || id < 0) {
-            return res.status(400).json({
-                success: false,
-                data : [],
-                message : "Invalid project id"
-            });
-
-        }
 
         const result = await pool.query(`SELECT employees.employee_id, employees.first_name, employees.last_name, employees.email, project_assignment.role, project_assignment.hours_allocated FROM project_assignment JOIN employees ON project_assignment.employee_id = employees.employee_id WHERE project_assignment.project_id = $1 `, [id]);
 
